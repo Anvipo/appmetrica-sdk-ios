@@ -10,8 +10,10 @@
 
 #import "AMAJailbreakCheck.h"
 
+#if !TARGET_OS_OSX
 // UIKit
 #import <UIKit/UIKit.h>
+#endif
 
 // stat
 #import <sys/stat.h>
@@ -44,7 +46,49 @@
 // Is the application running on a jailbroken device?
 + (int)jailbroken {
     // Is the device jailbroken?
-    
+
+#if TARGET_OS_OSX
+	// Make an int to monitor how many checks are failed
+	int motzart = 0;
+
+	// Check for certain files or directories that are typically found in a "jailed" system
+	NSArray *commonJailPaths = @[
+		@"/Applications/Cydia.app",
+		@"/Applications/FakeCarrier.app",
+		@"/Library/MobileSubstrate/DynamicLibraries/Vaultenabler.dylib",
+		@"/var/lib/apt",
+		@"/var/lib/cydia"
+	];
+
+	for (NSString *path in commonJailPaths) {
+		if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+			// "Jailbroken" files or directories found
+			motzart += 1;
+		}
+	}
+
+	// Check for accessibility to certain files or directories that are typically restricted
+	NSArray *inaccessiblePaths = @[
+		@"/etc/apt",
+		@"/private/var/lib/ssh"
+	];
+
+	for (NSString *path in inaccessiblePaths) {
+		if (![[NSFileManager defaultManager] isReadableFileAtPath:path]) {
+			// Inaccessible files or directories found
+			motzart += 1;
+		}
+	}
+
+	// Check if the Jailbreak Integer is 2 or more
+	if (motzart >= 2) {
+		// "Jailbroken"
+		return AMA_KFJailbroken;
+	}
+
+	// Not "Jailbroken"
+	return NOTJAIL;
+#else
     // Make an int to monitor how many checks are failed
     int motzart = 0;
     
@@ -89,6 +133,7 @@
     
     // Not Jailbroken
     return NOTJAIL;
+#endif
 }
 
 #pragma mark - Static Jailbreak Checks

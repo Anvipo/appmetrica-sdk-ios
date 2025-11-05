@@ -166,9 +166,13 @@ static void AMAReachabilityCallback(SCNetworkReachabilityRef __unused target, SC
 
 - (BOOL)isReachableViaWiFi
 {
+#if TARGET_OS_OSX
+	return YES;
+#else
     SCNetworkConnectionFlags flags = self.flags;
     BOOL isReachableViaWWAN = (flags & kSCNetworkReachabilityFlagsIsWWAN) != 0;
     return (isReachableViaWWAN == NO);
+#endif
 }
 
 - (void)setFlags:(SCNetworkReachabilityFlags)flags

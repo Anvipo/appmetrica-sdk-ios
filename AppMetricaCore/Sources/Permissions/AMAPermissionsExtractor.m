@@ -63,12 +63,14 @@
             return AMAPermissionGrantTypeDenied;
         case kCLAuthorizationStatusAuthorizedAlways:
             return AMAPermissionGrantTypeAuthorized;
+#if !TARGET_OS_OSX
         case kCLAuthorizationStatusAuthorizedWhenInUse: {
             if ([permission isEqualToString:kAMAPermissionKeyLocationAlways]) {
                 return AMAPermissionGrantTypeDenied;
             }
             return AMAPermissionGrantTypeAuthorized;
         }
+#endif
         default:
             return AMAPermissionGrantTypeNotDetermined;
     }

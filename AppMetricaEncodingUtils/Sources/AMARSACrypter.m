@@ -51,6 +51,9 @@ typedef OSStatus (*AMARSACryptoFunction)(SecKeyRef, SecPadding, const uint8_t *,
      processingFunction:(AMARSACryptoFunction)processingFunction
                   error:(NSError **)error
 {
+#if TARGET_OS_OSX
+	return data;
+#else
     const uint8_t *sourceDataBytes = (const uint8_t *)[data bytes];
     size_t sourceSize = (size_t)data.length;
 
@@ -81,10 +84,14 @@ typedef OSStatus (*AMARSACryptoFunction)(SecKeyRef, SecPadding, const uint8_t *,
     
     free(bufferBytes);
     return [result copy];
+#endif
 }
 
 - (NSData *)encodeData:(NSData *)data error:(NSError **)error
 {
+#if TARGET_OS_OSX
+	return data;
+#else
     NSError *currentError = nil;
     NSData *encryptedData = nil;
 
@@ -101,10 +108,14 @@ typedef OSStatus (*AMARSACryptoFunction)(SecKeyRef, SecPadding, const uint8_t *,
     AMALogInfo(@"RSA encryption finished(%lu -> %lu), error: %@",
         (unsigned long)data.length, (unsigned long)encryptedData.length, currentError);
     return encryptedData;
+#endif
 }
 
 - (NSData *)decodeData:(NSData *)data error:(NSError **)error
 {
+#if TARGET_OS_OSX
+	return data;
+#else
     NSError *currentError = nil;
     NSData *decryptedData = nil;
 
@@ -121,6 +132,7 @@ typedef OSStatus (*AMARSACryptoFunction)(SecKeyRef, SecPadding, const uint8_t *,
     AMALogInfo(@"RSA decryption finished(%lu -> %lu), error: %@",
         (unsigned long)data.length, (unsigned long)decryptedData.length, currentError);
     return decryptedData;
+#endif
 }
 
 @end

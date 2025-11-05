@@ -1,6 +1,12 @@
 
 #import <AppMetricaHostState/AppMetricaHostState.h>
+
+#if TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+#else
 #import <UIKit/UIKit.h>
+#endif
+
 #import "AMAApplicationHostStateProvider.h"
 #import "AMAHostStateLogging.h"
 
@@ -38,20 +44,37 @@
 
 - (void)subscribeToNotifications
 {
-    [self.notificationCenter addObserver:self
-                                selector:@selector(applicationDidBecomeActive)
-                                    name:UIApplicationDidBecomeActiveNotification
-                                  object:nil];
+#if TARGET_OS_OSX
+	[self.notificationCenter addObserver:self
+								selector:@selector(applicationDidBecomeActive)
+									name:NSApplicationDidBecomeActiveNotification
+								  object:nil];
 
-    [self.notificationCenter addObserver:self
-                                selector:@selector(applicationWillResignActive)
-                                    name:UIApplicationWillResignActiveNotification
-                                  object:nil];
+	[self.notificationCenter addObserver:self
+								selector:@selector(applicationWillResignActive)
+									name:NSApplicationWillResignActiveNotification
+								  object:nil];
 
-    [self.notificationCenter addObserver:self
-                                selector:@selector(applicationWillTerminate)
-                                    name:UIApplicationWillTerminateNotification
-                                  object:nil];
+	[self.notificationCenter addObserver:self
+								selector:@selector(applicationWillTerminate)
+									name:NSApplicationWillTerminateNotification
+								  object:nil];
+#else
+	[self.notificationCenter addObserver:self
+								selector:@selector(applicationDidBecomeActive)
+									name:UIApplicationDidBecomeActiveNotification
+								  object:nil];
+
+	[self.notificationCenter addObserver:self
+								selector:@selector(applicationWillResignActive)
+									name:UIApplicationWillResignActiveNotification
+								  object:nil];
+
+	[self.notificationCenter addObserver:self
+								selector:@selector(applicationWillTerminate)
+									name:UIApplicationWillTerminateNotification
+								  object:nil];
+#endif
 }
 
 - (void)forceUpdateToForeground

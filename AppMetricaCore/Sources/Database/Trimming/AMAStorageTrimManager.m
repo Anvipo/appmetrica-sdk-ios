@@ -7,7 +7,12 @@
 #import "AMAPlainStorageTrimmer.h"
 #import "AMAReporterNotifications.h"
 #import "AMAEventsCountStorageTrimmer.h"
+#if TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+@import Cocoa;
+#else
 #import <UIKit/UIKit.h>
+#endif
 
 @interface AMAStorageTrimManager ()
 
@@ -67,6 +72,9 @@
 
 - (void)subscribeDatabaseToMemoryWarningTrim:(id<AMADatabaseProtocol>)database
 {
+#if TARGET_OS_OSX
+
+#else
     AMAStorageEventsTrimTransaction *transaction =
         [[AMAStorageEventsTrimTransaction alloc] initWithCleaner:self.eventsCleaner];
     AMAPlainStorageTrimmer *trimmer = [[AMAPlainStorageTrimmer alloc] initWithTrimTransaction:transaction];
@@ -76,6 +84,7 @@
                       withCallback:^(NSNotification *notification) {
         [trimmer trimDatabase:weakDatabase];
     }];
+#endif
 }
 
 - (void)subscribeDatabaseToEventsCountTrim:(id<AMADatabaseProtocol>)database

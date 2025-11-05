@@ -1,5 +1,9 @@
 
+#if TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+#else
 #import <UIKit/UIKit.h>
+#endif
 #import <sys/utsname.h>
 #include <objc/runtime.h>
 #import <Security/Security.h>
@@ -49,12 +53,16 @@
 
 + (NSString *)appPlatform
 {
+#if TARGET_OS_OSX
+	return @"mac";
+#else
     switch ([[UIDevice currentDevice] userInterfaceIdiom]) {
         case UIUserInterfaceIdiomPad:
             return @"ipad";
         default:
             return @"iphone";
     }
+#endif
 }
 
 #pragma mark - Screen
@@ -82,7 +90,11 @@
 
 + (NSString *)screenWidth
 {
+#if TARGET_OS_OSX
+	NSRect bounds = [[NSScreen mainScreen] frame];
+#else
     CGRect bounds = [[UIScreen mainScreen] bounds];
+#endif
     CGFloat width = CGRectGetWidth(bounds);
     NSString *result = [NSString stringWithFormat:@"%.0f", width];
     return result;
@@ -90,7 +102,11 @@
 
 + (NSString *)screenHeight
 {
-    CGRect bounds = [[UIScreen mainScreen] bounds];
+#if TARGET_OS_OSX
+	NSRect bounds = [[NSScreen mainScreen] frame];
+#else
+	CGRect bounds = [[UIScreen mainScreen] bounds];
+#endif
     CGFloat height = CGRectGetHeight(bounds);
     NSString *result = [NSString stringWithFormat:@"%.0f", height];
     return result;
@@ -123,13 +139,23 @@
 
 + (NSString *)OSVersion
 {
+#if TARGET_OS_OSX
+	NSString *systemVersion = [[NSProcessInfo processInfo] operatingSystemVersionString];
+#else
     NSString *systemVersion = [[UIDevice currentDevice] systemVersion];
+#endif
     return systemVersion;
 }
 
 + (BOOL)isDeviceModelOfType:(NSString *)type
 {
-    NSString *model = [[[UIDevice currentDevice] model] lowercaseString];
+#if TARGET_OS_OSX
+	struct utsname systemInfo;
+	uname(&systemInfo);
+	NSString *model = [[NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding] lowercaseString];
+#else
+	NSString *model = [[[UIDevice currentDevice] model] lowercaseString];
+#endif
     return ([model rangeOfString:[type lowercaseString]].location != NSNotFound);
 }
 
@@ -139,14 +165,55 @@
 + (CGFloat)screenScale
 {
     CGFloat screenScale = 1.0f;
+#if TARGET_OS_OSX
+	if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)]) {
+		screenScale = [[NSScreen mainScreen] backingScaleFactor];
+	}
+#else
     if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
         screenScale = [[UIScreen mainScreen] scale];
     }
+#endif
     return screenScale;
 }
 
 + (NSDictionary<NSString *, NSNumber *> *)dpiValues
 {
+#if TARGET_OS_OSX
+	return @{
+		@"MacBookPro17,1" : @2880, // MacBook Pro (16-inch, 2021)
+		@"MacBookPro16,4" : @2880, // MacBook Pro (16-inch, 2019)
+		@"MacBookPro16,3" : @2560, // MacBook Pro (15-inch, 2019)
+		@"MacBookPro15,3" : @2880, // MacBook Pro (16-inch, 2018)
+		@"MacBookPro14,3" : @2560, // MacBook Pro (15-inch, 2017)
+		@"MacBookPro13,3" : @2560, // MacBook Pro (15-inch, 2020)
+		@"MacBookPro13,2" : @2560, // MacBook Pro (15-inch, 2016)
+		@"MacBookPro13,1" : @2560, // MacBook Pro (Retina, 15-inch, Mid 2014)
+		@"MacBookPro12,1" : @2560, // MacBook Pro (Retina, 15-inch, Mid 2013)
+		@"MacBookPro11,4" : @2560, // MacBook Pro (Retina, 13-inch, Late 2013)
+		@"MacBookPro9,1" : @2560,  // MacBook Pro (Retina, 13-inch, Early 2013)
+		@"MacBookPro8,1" : @2560,  // MacBook Pro (Retina, 13-inch, Late 2012)
+		@"MacBookPro7,1" : @2560,  // MacBook Pro (Retina, 13-inch, Late 2012)
+		@"MacBookPro6,2" : @1440,  // MacBook Pro (Retina, 13-inch, Late 2011)
+		@"MacBookPro6,1" : @1440,  // MacBook Pro (Non-Retina, 15-inch, Mid 2010)
+		@"MacBookPro5,3" : @1440,  // MacBook Pro (Retina, 15-inch, Late 2010)
+		@"MacBookPro5,2" : @1440,  // MacBook Pro (Non-Retina, 13-inch)
+		@"MacBookPro5,1" : @1440,  // MacBook Pro (Non-Retina, 13-inch, Mid 2010)
+		@"MacBookPro4,3" : @1440,  // MacBook Pro (Retina, 15-inch, Early 2011)
+		@"MacBookPro4,2" : @1440,  // MacBook Pro (Non-Retina, 13-inch)
+		@"MacBookPro4,1" : @1440,  // MacBook Pro (Non-Retina, 15-inch, Early 2009)
+		@"MacBookPro3,4" : @1440,  // MacBook Pro (Retina, 13-inch, Early 2011)
+		@"MacBookPro3,1" : @1440,  // MacBook Pro (Non-Retina, 15-inch)
+		@"MacBookPro2,8" : @1440,  // MacBook Pro (Retina, 15-inch, Mid 2010)
+		@"MacBookPro2,6" : @1440,  // MacBook Pro (Retina, 13-inch, Mid 2010)
+		@"MacBookPro2,5" : @1440,  // MacBook Pro (Non-Retina, 15-inch)
+		@"MacBookPro2,4" : @1440,  // MacBook Pro (Non-Retina, 13-inch)
+		@"MacBookPro2,3" : @1440,  // MacBook Pro (Non-Retina, 13/15-inch)
+		@"MacBookPro2,2" : @1440,  // MacBook Pro (Non-Retina, 13/15-inch)
+		@"MacBookPro2,1" : @1440,  // MacBook Pro (Non-Retina, 13-inch)
+		@"MacBookPro1,1" : @1280   // MacBook Pro (Non-Retina)
+	};
+#else
     return @{ @"iPhone14,4" : @476, // iPhone 13 mini
               @"iPhone13,1" : @476, // iPhone 12 mini
               
@@ -289,6 +356,7 @@
               @"iPad2,3" : @132, // iPad 2
               @"iPad2,4" : @132, // iPad 2
     };
+#endif
 }
 
 @end

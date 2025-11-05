@@ -2,7 +2,12 @@
 #import "AMACore.h"
 #import "AMAAppOpenWatcher.h"
 #import "AMADeepLinkController.h"
+
+#if TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+#else
 #import <UIKit/UIKit.h>
+#endif
 
 @interface AMAAppOpenWatcher ()
 
@@ -36,7 +41,11 @@
     self.deepLinkController = controller;
     [self.notificationCenter addObserver:self
                                 selector:@selector(didFinishLaunching:)
-                                    name:UIApplicationDidFinishLaunchingNotification
+#if TARGET_OS_OSX
+                                    name:NSApplicationDidFinishLaunchingNotification
+#else
+									name:UIApplicationDidFinishLaunchingNotification
+#endif
                                   object:nil];
 }
 
@@ -53,6 +62,9 @@
 
 - (NSURL *)extractDeeplink:(NSDictionary *)userInfo
 {
+#if TARGET_OS_OSX
+	return nil;
+#else
     NSURL *__block openUrl = nil;
     //Deeplink
     if ([userInfo[UIApplicationLaunchOptionsURLKey] isKindOfClass:NSURL.class]) {
@@ -72,6 +84,7 @@
         }
     }
     return openUrl;
+#endif
 }
 
 @end
